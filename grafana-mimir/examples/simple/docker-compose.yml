@@ -38,12 +38,14 @@ services:
     image: prom/prometheus:latest
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-      - --log.level=error
+      - --log.level=warn
       - --storage.tsdb.path=/prometheus
       - --web.console.libraries=/usr/share/prometheus/console_libraries
       - --web.console.templates=/usr/share/prometheus/consoles
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
     depends_on:
       - "mimir-1"
 
@@ -56,6 +58,8 @@ services:
       - ./config/mimir.yaml:/etc/mimir.yaml
       - ./config/alertmanager-fallback-config.yaml:/etc/alertmanager-fallback-config.yaml
       - mimir-1-data:/data
+    depends_on :
+    - minio
 
 volumes:
   mimir-1-data:
