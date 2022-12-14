@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 5s
+  external_labels:
+    cluster: demo
+    namespace: demo
+
+scrape_configs:
+  - job_name: local/mimir
+    static_configs:
+      - targets: [ 'distributor-1:8080' ]
+        labels:
+          pod: 'distributor-1'
+      - targets: [ 'distributor-2:8080' ]
+        labels:
+          pod: 'distributor-2'
+      - targets: [ 'ingester-1:8080' ]
+        labels:
+          pod: 'ingester-1'
+      - targets: [ 'ingester-2:8080' ]
+        labels:
+          pod: 'ingester-2'
+      - targets: [ 'compactor:8080' ]
+        labels:
+          pod: 'compactor'
+      - targets: [ 'store-gateway:8080' ]
+        labels:
+          pod: 'store-gateway'
+      - targets: [ 'querier:8080' ]
+        labels:
+          pod: 'querier'
+      - targets: [ 'query-frontend:8080' ]
+        labels:
+          pod: 'query-frontend'
+
+remote_write:
+  - url: http://load-balancer:9009/api/v1/push
+# Add X-Scope-OrgID header so that Mimir knows what tenant the remote write data should be stored in.
+# In this case, our tenant is "demo"
+    headers:
+      X-Scope-OrgID: demo

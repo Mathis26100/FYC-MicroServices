@@ -1,0 +1,180 @@
+version: '3.8'
+services:
+  load-balancer:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 9009:9009
+    depends_on:
+      - distributor-1
+      - distributor-2
+    networks:
+      - mimir-cluster
+
+  minio:
+    image: minio/minio
+    entrypoint: [""]
+    command: ["sh", "-c", "mkdir -p /data/mimir && minio server --quiet /data"]
+    environment:
+      - MINIO_ROOT_USER=mimir
+      - MINIO_ROOT_PASSWORD=supersecret
+    volumes:
+      - minio-data:/data
+    networks:
+      - mimir-cluster
+
+  grafana:
+    image: grafana/grafana:latest
+    pull_policy: always
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_USERS_DEFAULT_THEME=light
+      - GF_LOG_MODE=console
+      - GF_LOG_LEVEL=critical
+    volumes:
+      - ./config/grafana-provisioning-dashboards.yaml:/etc/grafana/provisioning/dashboards/provisioning-dashboards.yaml:ro
+      - ./config/grafana-provisioning-datasources.yaml:/etc/grafana/provisioning/datasources/provisioning-datasources.yaml:ro
+    ports:
+      - 3000:3000
+    networks:
+      - mimir-cluster
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --log.level=error
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+    networks:
+      - mimir-cluster
+
+  query-frontend:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=query-frontend"]
+    hostname: query-frontend
+    depends_on:
+      - querier
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - query-frontend-data:/data
+    ports:
+      - 9010:8080
+    networks:
+      - mimir-cluster
+
+  querier:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=querier"]
+    hostname: querier
+    depends_on:
+      - store-gateway
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - querier-data:/data
+    ports:
+      - 9011:8080
+    networks:
+      - mimir-cluster
+
+  distributor-1:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=distributor"]
+    hostname: distributor-1
+    depends_on:
+      - ingester-1
+      - ingester-2
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - distributor-data-1:/data
+    networks:
+      - mimir-cluster
+
+  distributor-2:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=distributor"]
+    hostname: distributor-2
+    depends_on:
+      - ingester-1
+      - ingester-2
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - distributor-data-2:/data
+    networks:
+      - mimir-cluster
+
+  ingester-1:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=ingester"]
+    hostname: ingester-1
+    depends_on:
+      - minio
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - ingester-data-1:/data
+    ports:
+      - 9012:8080
+    networks:
+      - mimir-cluster
+
+  ingester-2:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=ingester"]
+    hostname: ingester-2
+    depends_on:
+      - minio
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - ingester-data-2:/data
+    ports:
+      - 9013:8080
+    networks:
+      - mimir-cluster
+
+  compactor:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=compactor"]
+    hostname: compactor
+    depends_on:
+      - minio
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - compactor-data:/data
+    ports:
+      - 9015:8080
+    networks:
+      - mimir-cluster
+
+  store-gateway:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml","-target=store-gateway"]
+    hostname: store-gateway
+    depends_on:
+      - minio
+    volumes:
+      - ./config/mimir.yaml:/etc/mimir.yaml
+      - store-gateway-data:/data
+    ports:
+      - 9016:8080
+    networks:
+      - mimir-cluster
+
+volumes:
+  minio-data:
+  query-frontend-data:
+  querier-data:
+  distributor-data-1:
+  distributor-data-2:
+  ingester-data-1:
+  ingester-data-2:
+  compactor-data:
+  store-gateway-data:
+
+networks:
+  mimir-cluster:
+    driver: bridge
