@@ -51,6 +51,8 @@ services:
       - --web.console.templates=/usr/share/prometheus/consoles
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
     networks:
       - mimir-cluster
 
