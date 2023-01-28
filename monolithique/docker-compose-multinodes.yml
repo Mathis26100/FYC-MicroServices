@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+
+  load-balancer:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:8080
+    depends_on:
+      - monolithique-1
+      - monolithique-2
+      - monolithique-3
+    networks:
+      - monolithique-net
+
+  monolithique-1:
+    build: .
+    hostname: "monolithique-1"
+    restart: unless-stopped
+    networks:
+      - monolithique-net
+
+  monolithique-2:
+    build: .
+    hostname: "monolithique-2"
+    restart: unless-stopped
+    networks:
+      - monolithique-net
+
+  monolithique-3:
+    build: .
+    hostname: "monolithique-3"
+    restart: unless-stopped
+    networks:
+      - monolithique-net
+
+networks:
+  monolithique-net:
