@@ -1,0 +1,124 @@
+version: '3.8'
+services:
+
+  load-balancer-gateway:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx-gateway.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 8080:8080
+    depends_on:
+      - gateway-1
+      - gateway-2
+      - gateway-3
+    networks:
+      - application
+
+  load-balancer-users:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx-users.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - users-1
+      - users-2
+      - users-3
+    networks:
+      - application
+
+  load-balancer-accounts:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx-accounts.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - accounts-1
+      - accounts-2
+      - accounts-3
+    networks:
+      - application
+
+  gateway-1:
+    build: .
+    hostname: "gateway-1"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=gateway"
+      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
+      - "USERS_URL=http://load-balancer-users:8080"
+    networks:
+      - application
+
+  gateway-2:
+    build: .
+    hostname: "gateway-2"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=gateway"
+      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
+      - "USERS_URL=http://load-balancer-users:8080"
+    networks:
+      - application
+
+  gateway-3:
+    build: .
+    hostname: "gateway-3"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=gateway"
+      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
+      - "USERS_URL=http://load-balancer-users:8080"
+    networks:
+      - application
+
+  user-1:
+    build: .
+    hostname: "user-1"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=users"
+    networks:
+      - application
+
+  user-2:
+    build: .
+    hostname: "user-2"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=users"
+    networks:
+      - application
+
+  user-3:
+    build: .
+    hostname: "user-3"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=users"
+    networks:
+      - application
+
+  accounts-1:
+    build: .
+    hostname: "accounts-1"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=accounts"
+    networks:
+      - application
+
+  accounts-2:
+    build: .
+    hostname: "accounts-2"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=accounts"
+    networks:
+      - application
+
+  accounts-3:
+    build: .
+    hostname: "accounts-3"
+    restart: unless-stopped
+    environment:
+      - "SERVICE_TYPE=accounts"
+    networks:
+      - application
