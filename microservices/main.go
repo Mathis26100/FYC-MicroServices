@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -65,8 +66,11 @@ func accountsList(w http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		jsonData, _ := json.Marshal(resp.Body)
-		fmt.Fprint(w, string(jsonData))
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Fprint(w, string(b))
 	}
 }
 
@@ -88,8 +92,11 @@ func users(w http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		jsonData, _ := json.Marshal(resp.Body)
-		fmt.Fprint(w, string(jsonData))
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Fprint(w, string(b))
 	}
 }
 
