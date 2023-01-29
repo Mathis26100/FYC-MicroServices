@@ -107,8 +107,11 @@ func health(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(jsonData))
 	} else {
 		url := fmt.Sprintf("http://%s/health", os.Getenv("ACCOUNTS_URL"))
-		resp, _ := http.Get(url)
-		defer resp.Body.Close()
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Println(err)
+		}
+		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -116,8 +119,11 @@ func health(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		url = fmt.Sprintf("http://%s/health", os.Getenv("USERS_URL"))
-		resp, _ = http.Get(url)
-		defer resp.Body.Close()
+		resp, err = http.Get(url)
+		if err != nil {
+			log.Println(err)
+		}
+		resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusServiceUnavailable)
