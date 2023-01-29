@@ -45,8 +45,8 @@ services:
     restart: unless-stopped
     environment:
       - "SERVICE_TYPE=gateway"
-      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
-      - "USERS_URL=http://load-balancer-users:8080"
+      - "ACCOUNTS_URL=load-balancer-accounts:8080"
+      - "USERS_URL=load-balancer-users:8080"
     networks:
       - application
 
@@ -56,8 +56,8 @@ services:
     restart: unless-stopped
     environment:
       - "SERVICE_TYPE=gateway"
-      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
-      - "USERS_URL=http://load-balancer-users:8080"
+      - "ACCOUNTS_URL=load-balancer-accounts:8080"
+      - "USERS_URL=load-balancer-users:8080"
     networks:
       - application
 
@@ -67,8 +67,8 @@ services:
     restart: unless-stopped
     environment:
       - "SERVICE_TYPE=gateway"
-      - "ACCOUNTS_URL=http://load-balancer-accounts:8080"
-      - "USERS_URL=http://load-balancer-users:8080"
+      - "ACCOUNTS_URL=load-balancer-accounts:8080"
+      - "USERS_URL=load-balancer-users:8080"
     networks:
       - application
 
